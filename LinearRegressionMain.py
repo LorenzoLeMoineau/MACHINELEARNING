@@ -1,14 +1,11 @@
-from google.colab import files
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import numpy as np
 
-print("Please upload your CSV file containing the data.")
-uploaded = files.upload()
-
-file_name = list(uploaded.keys())[0]
+print("Loading the CSV file containing the data.")
+file_name = "burger-king-menu.csv"
 data = pd.read_csv(file_name, encoding='latin1')
 
 print("\nHere is an overview of the columns available in your data:")
@@ -98,3 +95,4 @@ if target in data.columns:
     print(f"\nThe predicted value for '{target}' is: {predicted_value:.2f}")
 else:
     print("\nThe selected column does not exist in the data. Please check your choices.")
+

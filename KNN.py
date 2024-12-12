@@ -111,7 +111,7 @@ else:
                               fontsize=10, ha='left', va='top', transform=axes_2d[idx].transAxes)
 
         plt.tight_layout()
-        plt.subplots_adjust(hspace=1)  # Increase space between subplots vertically
+        plt.subplots_adjust(hspace=1) 
         plt.show()
 
         print("\nGenerating 3D plots...")
@@ -155,7 +155,7 @@ else:
                         ax.set_zlabel(visual_features[2])
 
                         # Information shifted to the right
-                        ax.text2D(1.1, 0.5, f"Accuracy: {accuracy:.2f}\nPrecision: {precision:.2f}\nRecall: {recall:.2f}\nF1-Score: {f1:.2f}",
+                        ax.text2D(1.5, 0.5, f"Accuracy: {accuracy:.2f}\nPrecision: {precision:.2f}\nRecall: {recall:.2f}\nF1-Score: {f1:.2f}",
                                   transform=ax.transAxes, fontsize=10, verticalalignment='center', ha='left')
 
                         plot_idx_3d += 1

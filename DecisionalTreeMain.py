@@ -1,12 +1,9 @@
-from google.colab import files
 import pandas as pd
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
-print("Please upload your CSV file containing the data.")
-uploaded = files.upload()
-
-file_name = list(uploaded.keys())[0]
+print("Loading the CSV file containing the data.")
+file_name = "burger-king-menu.csv"
 data = pd.read_csv(file_name, encoding='latin1')
 
 print("\nHere is an overview of the columns available in your data:")

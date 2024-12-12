@@ -5,7 +5,9 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support, roc_curve, auc
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 from matplotlib.colors import ListedColormap
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -52,11 +54,7 @@ else:
         accuracy_threshold = 0.80
 
         print("\nGenerating 2D plots...")
-        fig_2d, axes_2d = plt.subplots(len(selected_columns) - 1, len(selected_columns) - 1, figsize=(20, 15))
-        fig_2d.subplots_adjust(hspace=0.4, wspace=0.4)
-        axes_2d = axes_2d.ravel()
-
-        plot_idx_2d = 0
+        valid_axes_2d = []
         for i in range(len(selected_columns) - 1):
             for j in range(i + 1, len(selected_columns)):
                 visual_features = [selected_columns[i], selected_columns[j]]
@@ -70,32 +68,50 @@ else:
 
                 y_pred = knn.predict(X_test)
                 accuracy = accuracy_score(y_test, y_pred)
+                precision, recall, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='weighted')
+
+                fpr, tpr, _ = roc_curve(y_test, knn.predict_proba(X_test)[:, 1], pos_label=1)
+                roc_auc = auc(fpr, tpr)
 
                 if accuracy >= accuracy_threshold:
                     print(f"\nResults for features: {visual_features}")
                     print("Classification Report:")
                     print(classification_report(y_test, y_pred))
-                    print("Accuracy Score:", accuracy)
+                    print(f"Accuracy Score: {accuracy}")
+                    print(f"Precision: {precision}, Recall: {recall}, F1-Score: {f1}")
+                    valid_axes_2d.append((visual_features, X, y, knn, accuracy, precision, recall, f1, roc_auc))
 
-                    x_min, x_max = X[visual_features[0]].min() - 1, X[visual_features[0]].max() + 1
-                    y_min, y_max = X[visual_features[1]].min() - 1, X[visual_features[1]].max() + 1
-                    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01),
-                                         np.arange(y_min, y_max, 0.01))
+        fig_2d, axes_2d = plt.subplots(len(valid_axes_2d), 1, figsize=(15, 10 * len(valid_axes_2d)))
+        if len(valid_axes_2d) == 1:
+            axes_2d = [axes_2d]
 
-                    Z = knn.predict(np.c_[xx.ravel(), yy.ravel()])
-                    Z = Z.reshape(xx.shape)
+        for idx, (visual_features, X, y, knn, accuracy, precision, recall, f1, roc_auc) in enumerate(valid_axes_2d):
+            x_min, x_max = X[visual_features[0]].min() - 1, X[visual_features[0]].max() + 1
+            y_min, y_max = X[visual_features[1]].min() - 1, X[visual_features[1]].max() + 1
+            xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01),
+                                 np.arange(y_min, y_max, 0.01))
 
-                    cmap_background = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
-                    cmap_points = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
-                    axes_2d[plot_idx_2d].contourf(xx, yy, Z, alpha=0.8, cmap=cmap_background)
-                    scatter = axes_2d[plot_idx_2d].scatter(X[visual_features[0]], X[visual_features[1]],
-                                                           c=y, cmap=cmap_points, edgecolor='k', s=20)
+            Z = knn.predict(np.c_[xx.ravel(), yy.ravel()])
+            Z = Z.reshape(xx.shape)
 
-                    axes_2d[plot_idx_2d].set_title(f"{visual_features[0]} vs {visual_features[1]}")
-                    axes_2d[plot_idx_2d].set_xlabel(visual_features[0])
-                    axes_2d[plot_idx_2d].set_ylabel(visual_features[1])
-                    plot_idx_2d += 1
+            cmap_background = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
+            cmap_points = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
+            axes_2d[idx].contourf(xx, yy, Z, alpha=0.8, cmap=cmap_background)
+            scatter = axes_2d[idx].scatter(X[visual_features[0]], X[visual_features[1]],
+                                            c=y, cmap=cmap_points, edgecolor='k', s=20)
 
+            axes_2d[idx].set_title(f"{visual_features[0]} vs {visual_features[1]}")
+            axes_2d[idx].set_xlabel(visual_features[0])
+            axes_2d[idx].set_ylabel(visual_features[1])
+
+            axes_2d[idx].legend(*scatter.legend_elements(), title="Classes")
+
+            # Information inside the plot (no more outside)
+            axes_2d[idx].text(1.05, 1, f"Accuracy: {accuracy:.2f}\nPrecision: {precision:.2f}\nRecall: {recall:.2f}\nF1-Score: {f1:.2f}\nAUC: {roc_auc:.2f}",
+                              fontsize=10, ha='left', va='top', transform=axes_2d[idx].transAxes)
+
+        plt.tight_layout()
+        plt.subplots_adjust(hspace=1) 
         plt.show()
 
         print("\nGenerating 3D plots...")
@@ -116,6 +132,7 @@ else:
 
                     y_pred = knn.predict(X_test)
                     accuracy = accuracy_score(y_test, y_pred)
+                    precision, recall, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='weighted')
 
                     if accuracy >= accuracy_threshold:
                         print(f"\nResults for features: {visual_features}")
@@ -136,6 +153,13 @@ else:
                         ax.set_xlabel(visual_features[0])
                         ax.set_ylabel(visual_features[1])
                         ax.set_zlabel(visual_features[2])
+
+                        # Information shifted to the right
+                        ax.text2D(1.5, 0.5, f"Accuracy: {accuracy:.2f}\nPrecision: {precision:.2f}\nRecall: {recall:.2f}\nF1-Score: {f1:.2f}",
+                                  transform=ax.transAxes, fontsize=10, verticalalignment='center', ha='left')
+
                         plot_idx_3d += 1
 
+        plt.tight_layout()
+        plt.subplots_adjust(hspace=1.2, wspace=0.6)  # Adjust vertical and horizontal space between subplots
         plt.show()

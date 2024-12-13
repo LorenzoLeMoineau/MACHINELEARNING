@@ -1,6 +1,14 @@
 import pandas as pd
-from sklearn.tree import DecisionTreeRegressor
+from sklearn.tree import DecisionTreeRegressor, plot_tree
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Hyperparameters
+MAX_DEPTH = 4
+MIN_SAMPLES_SPLIT = 2
+MIN_SAMPLES_LEAF = 1
+RANDOM_STATE = 42
 
 print("Loading the CSV file containing the data.")
 file_name = "burger-king-menu.csv"
@@ -40,7 +48,12 @@ if target in data.columns:
     X = data[[col for col in options.values() if col != target]]
     y = data[target]
 
-    model = DecisionTreeRegressor(random_state=42, max_depth=4)
+    model = DecisionTreeRegressor(
+        random_state=RANDOM_STATE,
+        max_depth=MAX_DEPTH,
+        min_samples_split=MIN_SAMPLES_SPLIT,
+        min_samples_leaf=MIN_SAMPLES_LEAF
+    )
     model.fit(X, y)
 
     y_pred = model.predict(X)
@@ -54,7 +67,19 @@ if target in data.columns:
     print(f"Mean Squared Error (MSE): {mse}")
     print(f"Root Mean Squared Error (RMSE): {rmse}")
     print(f"Mean Absolute Error (MAE): {mae}")
-    print(f"RÂ² Score: {r2}")
+    print(f"R² Score: {r2}")
+
+    print("\nDecision Tree Visualization:")
+    plt.figure(figsize=(20, 10))
+    plot_tree(
+        model,
+        feature_names=X.columns,
+        filled=True,
+        rounded=True,
+        fontsize=10
+    )
+    plt.title(f"Decision Tree for predicting '{target}'")
+    plt.show()
 
     print("\nPredict the value for a product by providing input values:")
     user_input = {}
@@ -67,3 +92,4 @@ if target in data.columns:
 
 else:
     print("\nThe selected column does not exist in the data. Please check your choices.")
+

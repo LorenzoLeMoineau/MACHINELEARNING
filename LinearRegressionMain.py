@@ -8,6 +8,9 @@ print("Loading the CSV file containing the data.")
 file_name = "burger-king-menu.csv"
 data = pd.read_csv(file_name, encoding='latin1')
 
+# Exclure la première ligne de la base de données
+data = data.iloc[1:]
+
 print("\nHere is an overview of the columns available in your data:")
 print(data.columns)
 
@@ -95,4 +98,3 @@ if target in data.columns:
     print(f"\nThe predicted value for '{target}' is: {predicted_value:.2f}")
 else:
     print("\nThe selected column does not exist in the data. Please check your choices.")
-

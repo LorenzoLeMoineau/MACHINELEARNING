@@ -1,6 +1,5 @@
 import pandas as pd
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
@@ -49,43 +48,6 @@ if all(col in data.columns for col in [feature_1, feature_2, target]):
     model = LinearRegression()
     model.fit(X, y)
 
-    y_pred = model.predict(X)
-
-    mse = mean_squared_error(y, y_pred)
-    rmse = np.sqrt(mse)
-    mae = mean_absolute_error(y, y_pred)
-    r2 = r2_score(y, y_pred)
-
-    def evaluate_metric(metric, thresholds, higher_is_better=True):
-        if higher_is_better:
-            if metric >= thresholds[0]:
-                return "Excellent"
-            elif metric >= thresholds[1]:
-                return "Good"
-            else:
-                return "Poor"
-        else:
-            if metric <= thresholds[0]:
-                return "Excellent"
-            elif metric <= thresholds[1]:
-                return "Good"
-            else:
-                return "Poor"
-
-    mse_quality = evaluate_metric(mse, thresholds=[10, 50], higher_is_better=False)
-    rmse_quality = evaluate_metric(rmse, thresholds=[5, 10], higher_is_better=False)
-    mae_quality = evaluate_metric(mae, thresholds=[5, 10], higher_is_better=False)
-    r2_quality = evaluate_metric(r2, thresholds=[0.75, 0.5], higher_is_better=True)
-
-    print("\nLinear Regression Results:")
-    print(f"Coefficients: {dict(zip(X.columns, model.coef_))}")
-    print(f"Intercept: {model.intercept_}")
-    print("\nPerformance Scores:")
-    print(f"Mean Squared Error (MSE): {mse} ({mse_quality})")
-    print(f"Root Mean Squared Error (RMSE): {rmse} ({rmse_quality})")
-    print(f"Mean Absolute Error (MAE): {mae} ({mae_quality})")
-    print(f"R² Score: {r2} ({r2_quality})")
-
     fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(111, projection='3d')
 
@@ -107,15 +69,6 @@ if all(col in data.columns for col in [feature_1, feature_2, target]):
     ax.set_zlabel(target)
     plt.legend()
     plt.show()
-
-    print("\nPredict the value for a product by providing input values:")
-    user_input = {}
-    user_input[feature_1] = float(input(f"Enter the value for {feature_1}: "))
-    user_input[feature_2] = float(input(f"Enter the value for {feature_2}: "))
-
-    input_data = pd.DataFrame([user_input])
-    predicted_value = model.predict(input_data)[0]
-    print(f"\nThe predicted value for '{target}' is: {predicted_value:.2f}")
 
 else:
     print("\nThe selected columns do not exist in the data. Please check your choices.")

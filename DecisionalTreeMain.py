@@ -4,7 +4,6 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Hyperparameters
 MAX_DEPTH = 4
 MIN_SAMPLES_SPLIT = 2
 MIN_SAMPLES_LEAF = 1
@@ -30,6 +29,7 @@ print("\nChoose the variable to predict by entering its corresponding number:")
 for key, value in options.items():
     print(f"{key} : {value}")
 
+
 def get_valid_input(prompt):
     while True:
         try:
@@ -41,10 +41,13 @@ def get_valid_input(prompt):
         except ValueError:
             print("Invalid input. Please enter a number.")
 
+
 target = get_valid_input("\nEnter the number of the variable to predict: ")
 
 if target in data.columns:
+    data = data.iloc[1:]  # Exclure la première ligne de la base de données
     data = data.dropna()
+
     X = data[[col for col in options.values() if col != target]]
     y = data[target]
 
@@ -63,11 +66,32 @@ if target in data.columns:
     mae = mean_absolute_error(y, y_pred)
     r2 = r2_score(y, y_pred)
 
+    def evaluate_metric(metric, thresholds, higher_is_better=True):
+        if higher_is_better:
+            if metric >= thresholds[0]:
+                return "Excellent"
+            elif metric >= thresholds[1]:
+                return "Good"
+            else:
+                return "Poor"
+        else:
+            if metric <= thresholds[0]:
+                return "Excellent"
+            elif metric <= thresholds[1]:
+                return "Good"
+            else:
+                return "Poor"
+
+    mse_quality = evaluate_metric(mse, thresholds=[10, 50], higher_is_better=False)
+    rmse_quality = evaluate_metric(rmse, thresholds=[5, 10], higher_is_better=False)
+    mae_quality = evaluate_metric(mae, thresholds=[5, 10], higher_is_better=False)
+    r2_quality = evaluate_metric(r2, thresholds=[0.75, 0.5], higher_is_better=True)
+
     print("\nPerformance scores:")
-    print(f"Mean Squared Error (MSE): {mse}")
-    print(f"Root Mean Squared Error (RMSE): {rmse}")
-    print(f"Mean Absolute Error (MAE): {mae}")
-    print(f"R² Score: {r2}")
+    print(f"Mean Squared Error (MSE): {mse} ({mse_quality})")
+    print(f"Root Mean Squared Error (RMSE): {rmse} ({rmse_quality})")
+    print(f"Mean Absolute Error (MAE): {mae} ({mae_quality})")
+    print(f"R² Score: {r2} ({r2_quality})")
 
     print("\nDecision Tree Visualization:")
     plt.figure(figsize=(20, 10))
@@ -92,4 +116,3 @@ if target in data.columns:
 
 else:
     print("\nThe selected column does not exist in the data. Please check your choices.")
-
